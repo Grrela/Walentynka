@@ -3,12 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <title>Walentynka 💖</title>
-<!-- MOBILE PRO -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <style>
-* {
-   box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 body {
    margin: 0;
    height: 100vh;
@@ -21,75 +18,21 @@ body {
    overflow: hidden;
    text-align: center;
 }
-h1 {
-   color: white;
-   padding: 0 20px;
-   font-size: clamp(24px, 6vw, 36px);
-}
-.buttons {
-   position: relative;
-   width: 90vw;
-   max-width: 360px;
-   height: 220px;
-   margin-top: 25px;
-}
+h1 { color: white; padding: 0 20px; font-size: clamp(24px, 6vw, 36px); }
+.buttons { position: relative; width: 90vw; max-width: 360px; height: 220px; margin-top: 25px; }
 button {
-   position: absolute;
-   width: 140px;
-   height: 60px;
-   font-size: 20px;
-   border-radius: 14px;
-   border: none;
-   cursor: pointer;
-   transition: left 0.35s ease, top 0.35s ease;
+   position: absolute; width: 140px; height: 60px; font-size: 20px; border-radius: 14px;
+   border: none; cursor: pointer; transition: left 0.35s ease, top 0.35s ease, transform 0.15s ease;
    touch-action: manipulation;
 }
-#yes {
-   background: #2ecc71;
-   color: white;
-   left: 20px;
-   top: 80px;
-}
-#no {
-   background: #e74c3c;
-   color: white;
-   left: 180px;
-   top: 80px;
-}
-/* ❤️ SERDUSZKA */
-.heart {
-   position: fixed;
-   bottom: -30px;
-   color: white;
-   animation: floatUp 3s linear forwards;
-   pointer-events: none;
-}
-@keyframes floatUp {
-   from {
-       transform: translateY(0) scale(1);
-       opacity: 1;
-   }
-   to {
-       transform: translateY(-110vh) scale(1.5);
-       opacity: 0;
-   }
-}
-/* 📸 ZDJĘCIE */
-#photoSection {
-   display: none;
-   margin-top: 25px;
-   color: white;
-}
-#photoSection input {
-   font-size: 16px;
-}
-#photoSection img {
-   margin-top: 15px;
-   max-width: 90vw;
-   max-height: 40vh;
-   border-radius: 16px;
-   box-shadow: 0 12px 30px rgba(0,0,0,0.35);
-}
+button:disabled { cursor: default; opacity: 0.85; }
+#yes { background: #2ecc71; color: white; left: 20px; top: 80px; }
+#no { background: #e74c3c; color: white; left: 180px; top: 80px; }
+.heart { position: fixed; bottom: -30px; color: white; animation: floatUp 3s linear forwards; pointer-events: none; }
+@keyframes floatUp { from { transform: translateY(0) scale(1); opacity: 1; } to { transform: translateY(-110vh) scale(1.5); opacity: 0; } }
+#photoSection { display: none; margin-top: 25px; color: white; }
+#photoSection input { font-size: 16px; }
+#photoSection img { margin-top: 15px; max-width: 90vw; max-height: 40vh; border-radius: 16px; box-shadow: 0 12px 30px rgba(0,0,0,0.35); }
 </style>
 </head>
 <body>
@@ -98,38 +41,62 @@ button {
 <button id="yes">Tak</button>
 <button id="no">Nie</button>
 </div>
+
 <div id="photoSection">
-<h2>Dodaj nasze zdjęcie 📸❤️</h2>
-<input type="file" accept="image/*" id="photoInput">
-<br>
-<img id="photoPreview">
+  <h2>Nasze zdjęcie 📸❤️</h2>
+  <input type="file" accept="image/*" id="photoInput">
+  <br>
+  <img id="photoPreview" alt="Zdjęcie">
 </div>
+
 <script>
 const box = document.querySelector(".buttons");
 const yes = document.getElementById("yes");
 const no = document.getElementById("no");
 const photoSection = document.getElementById("photoSection");
 const question = document.getElementById("question");
+const photoInput = document.getElementById('photoInput');
+const photoPreview = document.getElementById('photoPreview');
+
+const requiredClicks = 5;
+let clickCount = 0;
+
 function move(btn) {
+   if (btn.disabled) return;
    const maxX = box.clientWidth - btn.offsetWidth;
    const maxY = box.clientHeight - btn.offsetHeight;
    btn.style.left = Math.random() * maxX + "px";
    btn.style.top = Math.random() * maxY + "px";
 }
-// MOBILE: ucieka przy dotknięciu
+
 yes.addEventListener("touchstart", () => move(yes));
 no.addEventListener("touchstart", () => move(no));
-// DESKTOP fallback
-yes.addEventListener("mouseover", () => move(yes));
+yes.addEventListener("mouseover", () => { if (!yes.disabled) move(yes); });
 no.addEventListener("mouseover", () => move(no));
-// ❤️ KLIK TAK
-yes.addEventListener("click", () => {
-   question.innerText = "Wiedziałem! ❤️🥰";
-   createHearts();
-   setTimeout(() => {
-       photoSection.style.display = "block";
-   }, 3000);
+
+yes.addEventListener("click", async () => {
+   clickCount++;
+   const remaining = requiredClicks - clickCount;
+   if (remaining > 0) {
+       const jumps = 4;
+       const delay = 180;
+       yes.disabled = true;
+       question.innerText = `Oj... jeszcze ${remaining} ${remaining === 1 ? 'raz' : 'razy'}!`;
+       for (let i = 0; i < jumps; i++) {
+           setTimeout(() => {
+               yes.style.transform = "scale(1.06)";
+               move(yes);
+               setTimeout(() => yes.style.transform = "", 120);
+           }, i * delay);
+       }
+       setTimeout(() => { yes.disabled = false; }, jumps * delay + 80);
+   } else {
+       question.innerText = "Wiedziałem! ❤️🥰";
+       createHearts();
+       setTimeout(() => { photoSection.style.display = "block"; }, 1200);
+   }
 });
+
 function createHearts() {
    for (let i = 0; i < 40; i++) {
        const h = document.createElement("div");
@@ -137,10 +104,32 @@ function createHearts() {
        h.innerText = "❤️";
        h.style.left = Math.random() * 100 + "vw";
        h.style.fontSize = 18 + Math.random() * 24 + "px";
+       h.style.animationDuration = (2.5 + Math.random() * 1) + "s";
        document.body.appendChild(h);
-       setTimeout(() => h.remove(), 3000);
+       setTimeout(() => h.remove(), 3500);
    }
 }
+
+/* Podgląd wybranego zdjęcia */
+photoInput.addEventListener('change', (e) => {
+   const file = e.target.files[0];
+   if (!file) return;
+   const url = URL.createObjectURL(file);
+   photoPreview.src = url;
+   photoSection.style.display = "block";
+   photoPreview.onload = () => URL.revokeObjectURL(url);
+});
+
+/* Jeśli w repo jest już obrazek w images/photo.jpg - spróbuj go pokazać automatycznie */
+const defaultImagePath = 'images/photo.jpg';
+fetch(defaultImagePath, { method: 'HEAD' }).then(res => {
+   if (res.ok) {
+       photoPreview.src = defaultImagePath;
+       photoSection.style.display = "block";
+   }
+}).catch(() => {
+   // brak domyślnego obrazu — użytkownik wybierze plik ręcznie
+});
 </script>
 </body>
 </html>
